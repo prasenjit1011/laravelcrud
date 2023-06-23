@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use Illuminate\Http\{Request, JsonResponse};
+use Illuminate\Support\Facades\Storage;
 
 class ProductCtrl extends Controller
 {
@@ -33,8 +34,7 @@ class ProductCtrl extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $path = $request->file('file')->store('files');
-        
+        $path = Storage::put('public/files', $request->file('file'));
         $product = Product::create([
             'name' => $request->get('name'),
             'description' => $request->get('description'),
@@ -47,8 +47,8 @@ class ProductCtrl extends Controller
         }
 
         $product = [
-                    'id' => $product['id'] ?? NULL,
-                    'name' => $product['name'] ?? NULL,
+                    'id' => $product['id'],
+                    'name' => $product['name'],
                     'type' => $product['type'],
                     'description' => $product['description']
                 ];
@@ -62,6 +62,7 @@ class ProductCtrl extends Controller
     public function show(string $id)
     {
         $productDetails = Product::select('id','name', 'type', 'description', 'file')->find($id);
+        $productDetails->file = url(Storage::url($productDetails->file));
         return response()->json($productDetails);
     }
 
